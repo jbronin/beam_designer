@@ -1,0 +1,137 @@
+# Beam Designer
+
+## Platform
+- Python desktop app built with Tkinter and `ttk`, launched with `python3 app.py`.
+- Use Tkinter Canvas for the beam drawing and diagrams; no plotting package is
+  required.
+- Keep calculation logic independent of the GUI and use only US customary units.
+
+## Purpose
+A beam design tool for engineers and students. The user sets up a beam,
+places loads on it, and picks a steel or lumber section. The app shows the
+shear, moment, and deflection diagrams and checks whether the beam is
+strong and stiff enough, updating instantly as anything changes.
+
+## Users
+A civil engineering student checking a homework beam, or an engineer
+sizing a floor beam or deck joist.
+
+## Inputs
+- Support type: radio buttons for Simply supported or Cantilever (fixed at
+  the left end); default Simply supported.
+- Span (ft): 4 to 40, default 20; slider and synchronized number box.
+- Loads, listed in a panel where each can be edited or removed:
+  - Point loads: downward magnitude (kip), 0 to 10,000, default 0, entered
+    with a number box; position (ft), 0 to the current span in 1 ft steps,
+    default at midspan (at the free end of a cantilever), set with a slider
+    and synchronized number box. Dragging a point load snaps to 1 ft. A point
+    load cannot be placed outside the beam.
+  - Uniform loads: downward magnitude (kip/ft), 0 to 10,000, entered with a
+    number box. The startup example uses 1 kip/ft; a newly added uniform load
+    defaults to 0 kip/ft. Start and end positions (ft) range from 0 to the
+    current span in 1 ft steps, defaulting to 0 and the span, and use sliders
+    with synchronized number boxes. A uniform load cannot extend outside the
+    beam.
+  - "Add point load" and "Add uniform load" buttons.
+  - A newly added point load has magnitude 0 and starts at midspan (at the
+    free end of a cantilever).
+  - When the span is shortened, any existing load coordinates beyond the new
+    span are moved to the new beam end. Position controls are bounded by the
+    current span, so entered positions are constrained to the beam.
+- Material and section: radio buttons for the choices in these tables;
+  default Steel W12x26.
+
+  Steel W-shapes (E = 29,000 ksi, allowable bending stress Fb = 30 ksi):
+
+  | Section | Ix (in^4) | Sx (in^3) | Weight (lb/ft) |
+  |---------|-----------|-----------|----------------|
+  | W8x10   | 30.8      | 7.81      | 10 |
+  | W10x12  | 53.8      | 10.9      | 12 |
+  | W12x26  | 204       | 33.4      | 26 |
+  | W14x22  | 199       | 29.0      | 22 |
+  | W16x26  | 301       | 38.4      | 26 |
+  | W18x35  | 510       | 57.6      | 35 |
+  | W21x44  | 843       | 81.6      | 44 |
+  | W24x55  | 1350      | 114       | 55 |
+
+  Douglas Fir-Larch No. 2 lumber (E = 1,600 ksi, Fb = 0.900 ksi):
+
+  | Section | Ix (in^4) | Sx (in^3) |
+  |---------|-----------|-----------|
+  | 2x8     | 47.63     | 13.14     |
+  | 2x10    | 98.93     | 21.39     |
+  | 2x12    | 177.98    | 31.64     |
+
+- Deflection limit: radio buttons for L/240 or L/360 (default L/360).
+- Self-weight is ignored and is not user-adjustable.
+
+## Calculations
+- Reactions from statics.
+- Shear V(x) and moment M(x) along the beam, at 1 ft spacing or finer,
+  plus exactly at every load point and load start/end.
+- Deflection y(x) by integrating M/EI twice with the boundary conditions
+  for the support type (y = 0 at both supports; or y = 0 and slope = 0 at
+  the fixed end).
+- Bending stress fb = |M max| x 12 / Sx (ksi). Bending check passes if
+  fb <= Fb.
+- Deflection check passes if |y max| <= L/240 or L/360 (L in inches).
+- Lightest passing section: of the sections in the chosen material, the
+  lightest steel section that passes both checks (if two weigh the same,
+  the one with the larger Ix), or the first lumber size in the table
+  that passes.
+- Units: kips, ft, and kip-ft on screen; inches for deflection.
+
+## Outputs
+- A beam drawing with the supports, load arrows (point loads as single
+  arrows, uniform loads as a row of small arrows), and the reactions.
+- Three diagrams stacked under the beam and lined up with it on the same
+  x scale: shear (kips), moment (kip-ft), and deflected shape (in). Each
+  diagram is filled and shows its maximum value labeled at its location.
+- Moving the mouse over any diagram shows a vertical line across all three
+  with the values of V, M, and y at that x.
+- Two check cards: Bending and Deflection. Each shows the actual value, the
+  allowable value, a bar for the ratio (green under 70%, amber 70-100%,
+  red over 100%), and PASS or FAIL.
+- A line suggesting the lightest passing section, with a button to use it.
+- Everything updates immediately whenever any input changes.
+- A **File** menu with **Save** and **Open** for JSON beam files. Files store
+  support type, span, material and section, deflection limit, and all point and
+  uniform loads. An invalid file must not replace the current beam.
+- An **Export CSV** action that writes x (ft), shear V (kip), moment M
+  (kip-ft), and deflection y (in) along the beam. Include exact load stations;
+  duplicate x rows at point-load jumps represent the shear values on each side.
+- A **Calculation Sheet PDF** action that saves the beam inputs, loads,
+  diagrams, reactions, and checks for printing or hand-in.
+
+## Look and feel
+- Opens with an example already loaded (20 ft simply supported W12x26
+  with a 1 kip/ft uniform load over the full span), so it is useful the
+  moment it opens.
+- Clean and professional, like a commercial engineering web app: light
+  background, white cards with soft shadows, one accent color, a modern
+  system font, generous spacing. No clutter.
+- Inputs in a panel on the left; drawing, diagrams, and checks on the
+  right. On a phone, the panels stack.
+- Every input has a short label with units. Hovering over a check card
+  explains the formula used.
+
+## Validation
+1. Simply supported, 20 ft, W12x26, uniform 1 kip/ft over the full span:
+   reactions 10 k and 10 k; max shear 10 k; max moment 50.0 kip-ft at
+   10 ft; fb = 17.96 ksi; max deflection 0.609 in at 10 ft; L/360 =
+   0.667 in; both checks pass.
+2. Simply supported, 20 ft, W12x26, point load 10 k at 5 ft: reactions
+   7.5 k (left) and 2.5 k (right); max moment 37.5 kip-ft at 5 ft;
+   fb = 13.47 ksi; max deflection 0.340 in at 8.82 ft.
+3. Cantilever, 10 ft, W12x26, point load 5 k at the free end: reaction
+   5 k and fixed-end moment 50 kip-ft; max deflection 0.487 in at the free
+   end (PL^3/3EI); L/360 = 0.333 in, so deflection fails.
+4. Simply supported 12 ft 2x10 joist, uniform 0.05 kip/ft: max moment
+   0.90 kip-ft; fb = 0.505 ksi; max deflection 0.147 in; both pass.
+5. Simply supported, 30 ft, W18x35, uniform 2 kip/ft from 0 to 15 ft:
+   reactions 22.5 k (left) and 7.5 k (right); max moment 126.6 kip-ft at
+   11.25 ft.
+
+## Out of scope
+- Self-weight, shear stress, lateral-torsional buckling, load
+  combinations, and continuous beams.
