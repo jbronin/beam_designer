@@ -32,3 +32,5 @@ Keep this log up to date as work is requested. Add concise entries containing th
   - Action: Added a PDF report using ReportLab with beam inputs, loads, diagrams, reactions, and checks.
 - Request: Write a short README with app purpose, install packages, and launch command.
   - Action: Condensed README.md to those essentials.
+- Request: “help me fix that” about keeping local generated files out of Git.
+  - Action: Added `.gitignore` rules for macOS and Python-generated files.
